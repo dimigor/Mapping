@@ -2,21 +2,24 @@ import urllib
 import requests
 import folium
 import json
-import datetime
+import time
 import pandas
 import random
+
+# decorator calculate working time
 
 
 def time_func(func):
     def wrapper(*args, **kwargs):
-        start = datetime.time()
+        start = time.time()
         result = func(*args, **kwargs)
-        end = datetime.time()
-        print('Elapsed time: {}'.format(end - start))
+        end = time.time()
+        print('Function - {}, Elapsed time: {}'.format(func, end - start))
         return result
     return wrapper
 
 
+# func works with API danimist.org.ua
 def parse_json(offset=0):
     url = 'https://data.danimist.org.ua/api/action/datastore_search?offset={}&resource_id=b291187f-fe99-4057-bf13-f819d2923163'.format(offset)
     fileobj = urllib.request.urlopen(url)
@@ -26,6 +29,7 @@ def parse_json(offset=0):
     return json_obj['result']
 
 
+#itereable in records
 def iterb(json_obj):
     last_shape = 0
     list_koor = []
@@ -35,11 +39,11 @@ def iterb(json_obj):
             poly = folium.PolyLine(locations=list_koor)
             map.add_child(poly)
             list_koor = []
-
         list_koor.append((float(json_obj['records'][j]['shape_pt_lat']), float(json_obj['records'][j]['shape_pt_lon'])))
         last_shape = int(json_obj['records'][j]['shape_pt_sequence'])
 
 
+@time_func
 def set_routes(name='shapes.txt'):
     list_i = []
     data = pandas.read_csv(name)
@@ -65,6 +69,7 @@ def rand_color():
     return random.randint(100000, 999999)
 
 
+@time_func
 def set_stops(name='stops.txt'):
     data = pandas.read_csv(name)
     lat = list(data['stop_lat'])
@@ -80,6 +85,7 @@ def set_stops(name='stops.txt'):
 
 
 if __name__ == '__main__':
+    # create instance
     map = folium.Map(location=(49.869580, 24.018340))
 
     # API

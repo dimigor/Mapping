@@ -40,14 +40,14 @@ def iterb(json_obj):
         last_shape = int(json_obj['records'][j]['shape_pt_sequence'])
 
 
-def write_from_file(name='shapes.txt'):
+def set_routes(name='shapes.txt'):
     list_i = []
     data = pandas.read_csv(name)
     lat = list(data['shape_pt_lat'])
     lon = list(data['shape_pt_lon'])
     dist = list(data['shape_dist_traveled'])
 
-    fg = folium.FeatureGroup(name="MyMap")
+    fg = folium.FeatureGroup(name="shapes")
 
     for lt, ln, dist in zip(lat, lon, dist):
         if (dist > 0):
@@ -65,6 +65,20 @@ def rand_color():
     return random.randint(100000, 999999)
 
 
+def set_stops(name='stops.txt'):
+    data = pandas.read_csv(name)
+    lat = list(data['stop_lat'])
+    lon = list(data['stop_lon'])
+    stop_name = list(data['stop_name'])
+
+    fg = folium.FeatureGroup(name="stops")
+
+    for lt, ln, stop in zip(lat, lon, stop_name):
+        poly = folium.Marker(location=(lt, ln), icon=folium.Icon(color='green'), popup=stop)
+        fg.add_child(poly)
+        map.add_child(fg)
+
+
 if __name__ == '__main__':
     map = folium.Map(location=(49.869580, 24.018340))
 
@@ -72,5 +86,6 @@ if __name__ == '__main__':
     # for i in range(0, 86000, 100):
     #     print(i)
     #     iterb(parse_json(i))
-    write_from_file()
+    set_routes()
+    set_stops()
     map.save('index.html')

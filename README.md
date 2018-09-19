@@ -1,2 +1,2 @@
-# mapping
+# Mapping
 Mapping with Python and Folium

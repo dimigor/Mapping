@@ -69,6 +69,24 @@ def rand_color():
     return random.randint(100000, 999999)
 
 
+def make_color(lon, lat):
+    lon_center = 49.843636
+    lat_center = 24.026424
+
+    lon_diff = lon_center - lon
+    lat_diff = lat_center - lat
+    diff = abs(lon_diff * 100) + abs(lat_diff * 100)
+
+    if ((30 < diff) or (diff < -30)):
+        return 'red'
+
+    elif ((10 <= diff <= 30) or (-10 >= diff >= -30)):
+
+        return 'orange'
+    else:
+        return 'green'
+
+
 @time_func
 def set_stops(name='stops.txt'):
     data = pandas.read_csv(name)
@@ -79,7 +97,7 @@ def set_stops(name='stops.txt'):
     fg = folium.FeatureGroup(name="stops")
 
     for lt, ln, stop in zip(lat, lon, stop_name):
-        poly = folium.Marker(location=(lt, ln), icon=folium.Icon(color='green'), popup=stop)
+        poly = folium.Marker(location=(lt, ln), icon=folium.Icon(color=make_color(lt, ln)), popup=stop)
         fg.add_child(poly)
         map.add_child(fg)
 
@@ -95,3 +113,4 @@ if __name__ == '__main__':
     set_routes()
     set_stops()
     map.save('index.html')
+    # make_color(49.713664, 23.992430)

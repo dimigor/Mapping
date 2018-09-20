@@ -51,7 +51,7 @@ def set_routes(name='shapes.txt'):
     lon = list(data['shape_pt_lon'])
     dist = list(data['shape_dist_traveled'])
 
-    fg = folium.FeatureGroup(name="shapes")
+    fr = folium.FeatureGroup(name="Bus directions in Lviv")
 
     for lt, ln, dist in zip(lat, lon, dist):
         if (dist > 0):
@@ -59,14 +59,16 @@ def set_routes(name='shapes.txt'):
         else:
             r_color = rand_color()
             poly = folium.PolyLine(locations=list_i, color='#' + str(r_color))
-            fg.add_child(poly)
-            map.add_child(fg)
+            fr.add_child(poly)
+            map.add_child(fr)
             list_i = []
             list_i.append((lt, ln))
 
 
 def rand_color():
     return random.randint(100000, 999999)
+
+# func calculate difference between center in Lviv and Bus stop
 
 
 def make_color(lon, lat):
@@ -94,23 +96,49 @@ def set_stops(name='stops.txt'):
     lon = list(data['stop_lon'])
     stop_name = list(data['stop_name'])
 
-    fg = folium.FeatureGroup(name="stops")
+    fs = folium.FeatureGroup(name="Bus stops in Lviv")
 
     for lt, ln, stop in zip(lat, lon, stop_name):
-        poly = folium.Marker(location=(lt, ln), icon=folium.Icon(color=make_color(lt, ln)), popup=stop)
-        fg.add_child(poly)
-        map.add_child(fg)
+        poly = folium.CircleMarker(
+            location=(lt, ln),
+            radius=5,
+            fill_color=make_color(lt, ln),
+            color='#d3d7d8',
+            popup=stop,
+            fill_opacity=0.6)
+
+        fs.add_child(poly)
+        map.add_child(fs)
+
+
+@time_func
+def geo_json(layer_name, properties, num1, num2, file_name='world.json'):
+    fg = folium.FeatureGroup(name=layer_name)
+
+    fg.add_child(folium.GeoJson(open(
+        file_name,
+        encoding="utf-8-sig").read(),
+        style_function=lambda x: {
+        'fillColor': 'green'
+        if x['properties'][properties] < num1
+        else 'orange' if num1 <= x['properties'][properties] < num2
+        else 'red'}))
+
+    map.add_child(fg)
+
+
+def set_border():
+    geo_json(layer_name='Area', properties='AREA', num1=19000, num2=250000)
+    geo_json(layer_name='Population', properties='POP2005', num1=5000000, num2=45000000)
 
 
 if __name__ == '__main__':
     # create instance
-    map = folium.Map(location=(49.869580, 24.018340))
+    map = folium.Map(location=(49.869580, 24.018340), zoom_start=7, tiles='Mapbox Bright')
 
-    # API
-    # for i in range(0, 86000, 100):
-    #     print(i)
-    #     iterb(parse_json(i))
     set_routes()
     set_stops()
+    set_border()
+
+    map.add_child(folium.LayerControl())
     map.save('index.html')
-    # make_color(49.713664, 23.992430)
